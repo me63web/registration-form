@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Registration</title>
+<style>
+  :root {
+    --ink: #1b2a3a;
+    --muted: #5b6b7c;
+    --line: #d8dee5;
+    --accent: #2f6f4f;
+    --accent-dark: #234f39;
+    --bg: #f6f7f5;
+    --card: #ffffff;
+    --error: #b3432f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 36px 32px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  p.sub {
+    margin: 0 0 28px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 18px 0 6px;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+  }
+  input:focus, select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+  button {
+    width: 100%;
+    margin-top: 26px;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-dark); }
+  button:disabled { background: #9aa7af; cursor: not-allowed; }
+  #status {
+    margin-top: 16px;
+    font-size: 14px;
+    min-height: 20px;
+  }
+  #status.ok { color: var(--accent-dark); }
+  #status.err { color: var(--error); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Student Registration</h1>
+  <p class="sub">Fill in the details below to register.</p>
+
+  <form id="regForm">
+    <label for="name">Full name</label>
+    <input id="name" required autocomplete="name">
+
+    <label for="rollNo">Roll number / Student ID</label>
+    <input id="rollNo" required>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" required autocomplete="email">
+
+    <label for="phone">Phone number</label>
+    <input id="phone" type="tel" required autocomplete="tel">
+
+    <label for="course">Course</label>
+    <select id="course" required>
+      <option value="" disabled selected>Select a course</option>
+      <option>Computer Science</option>
+      <option>Business Administration</option>
+      <option>Electrical Engineering</option>
+      <option>Mathematics</option>
+      <option>Other</option>
+    </select>
+
+    <button type="submit" id="submitBtn">Register</button>
+    <div id="status"></div>
+  </form>
+</div>
+
+<!-- Firebase (compat SDK, simplest for beginners) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
+<script>
+  // STEP 4 in the guide: paste your own project's config here.
+  const firebaseConfig = {
+    apiKey: "AIzaSyBapqFEpjDznqQlCtkCnMph6bw7D0VaBhU",
+    authDomain: "student-registration-for-cce2c.firebaseapp.com",
+    databaseURL: "https://student-registration-for-cce2c-default-rtdb.firebaseio.com",
+    projectId: "student-registration-for-cce2c",
+    storageBucket: "student-registration-for-cce2c.firebasestorage.app",
+    messagingSenderId: "784431758719",
+    appId: "1:784431758719:web:4ac527aa8d4c5f885b2e4a"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const form = document.getElementById('regForm');
+  const statusEl = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    statusEl.className = '';
+    statusEl.textContent = 'Submitting...';
+
+    const student = {
+      name: document.getElementById('name').value.trim(),
+      rollNo: document.getElementById('rollNo').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      course: document.getElementById('course').value,
+      registeredAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    try {
+      await db.ref('students').push(student);
+      statusEl.textContent = 'Registered successfully.';
+      statusEl.className = 'ok';
+      form.reset();
+    } catch (err) {
+      statusEl.textContent = 'Error: ' + err.message;
+      statusEl.className = 'err';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
